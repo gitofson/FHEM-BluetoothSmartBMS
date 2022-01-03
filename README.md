@@ -19,5 +19,5 @@ And finally define the device in FHEM
 
     defmod BatteryPack1 GenericSmartBMS raspberry.ip 9998 60 1
 
-
-
+Use bmslog.py in cron example:
+    bluetoothctl --timeout 3 scan on && ./Raspberry/bmslog.py A4:C1:38:74:82:DA
