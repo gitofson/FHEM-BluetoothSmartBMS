@@ -88,6 +88,16 @@ class AnyDevice(gatt.Device):
     def characteristic_write_value_failed(self, characteristic, error):
         print("BMS write failed:",error)
 
+def isValid(device):
+    if device.rawdat['Ibat'] > 150:
+        return False
+    if device.rawdat['Vbat'] < 40 or device.rawdat['Vbat'] > 60:
+        return False
+    for i in range(1,17):
+        if device.rawdat['V{0:0=2}'.format(i)] < 2 or device.rawdat['V{0:0=2}'.format(i)] > 4:
+            return False
+    return True
+
 
 if (len(sys.argv)<2):
     print("Usage: bmsinfo.py <device_uuid>")
@@ -102,8 +112,9 @@ else:
                 "fields": device.rawdat
                 }
     ]
-    client = InfluxDBClient(host='elektrovit.cz', port=8086)
-    client.create_database(dbname)
-    client.switch_database(dbname)
-    client.write_points(json_body)
+    if(isValid(device)):
+        client = InfluxDBClient(host='elektrovit.cz', port=8086)
+        client.create_database(dbname)
+        client.switch_database(dbname)
+        client.write_points(json_body)
     #client.query('SELECT "duration" FROM "pyexample"."autogen"."brushEvents" WHERE time > now() - 4d GROUP BY "user"')
