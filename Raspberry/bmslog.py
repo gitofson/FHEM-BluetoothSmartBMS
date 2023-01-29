@@ -8,6 +8,23 @@ from influxdb import InfluxDBClient
 
 
 manager = gatt.DeviceManager(adapter_name='hci0')
+class db:
+    dbname = ['pv_main']
+    @staticmethod
+    def dbsave(measurement, rawdat):
+        mlist=db.dbname+[measurement]
+        json_body = [
+                    {
+                    "measurement": measurement,
+                    "fields": rawdat
+                    }
+        ]
+        client = InfluxDBClient(host='elektrovit.cz', port=8086)
+        for dbname in mlist:
+            #client.create_database(dbname)
+            client.switch_database(dbname)
+            client.write_points(json_body)
+
 
 class AnyDevice(gatt.Device):
     def connect_succeeded(self):
@@ -104,16 +121,6 @@ else:
     device = AnyDevice(mac_address=sys.argv[1], manager=manager)
     device.connect()
     manager.run()
-    dbname = 'bms01'
-    json_body = [
-                {
-                "measurement": "brushEvents",
-                "fields": device.rawdat
-                }
-    ]
     if(isValid(device)):
-        client = InfluxDBClient(host='elektrovit.cz', port=8086)
-        client.create_database(dbname)
-        client.switch_database(dbname)
-        client.write_points(json_body)
-    #client.query('SELECT "duration" FROM "pyexample"."autogen"."brushEvents" WHERE time > now() - 4d GROUP BY "user"')
+        db.dbsave('bms01', device.rawdat)
+      #client.query('SELECT "duration" FROM "pyexample"."autogen"."brushEvents" WHERE time > now() - 4d GROUP BY "user"')

@@ -4,8 +4,7 @@
 import gatt
 import json
 import sys
-from influxdb import InfluxDBClient
-
+from db import db
 
 manager = gatt.DeviceManager(adapter_name='hci0')
 
@@ -105,16 +104,5 @@ else:
     device = AnyDevice(mac_address=sys.argv[1], manager=manager)
     device.connect()
     manager.run()
-    dbname = 'bms02'
-    json_body = [
-                {
-                "measurement": "brushEvents",
-                "fields": device.rawdat
-                }
-    ]
     if(isValid(device)):
-        client = InfluxDBClient(host='elektrovit.cz', port=8086)
-        client.create_database(dbname)
-        client.switch_database(dbname)
-        client.write_points(json_body)
-    #client.query('SELECT "duration" FROM "pyexample"."autogen"."brushEvents" WHERE time > now() - 4d GROUP BY "user"')
+        db.dbsave('bms02',device.rawdat)
